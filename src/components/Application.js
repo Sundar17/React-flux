@@ -6,6 +6,8 @@ import Items from './Items';
 
 import './Application.css';
 
+import ItemStore from '../itemStore'
+
 const defaultState = [
   { value: 'Pants', id: uniqueId(), packed: false },
   { value: 'Jacket', id: uniqueId(), packed: false },
@@ -22,24 +24,21 @@ const defaultState = [
 
 class Application extends Component {
   state = {
-    items: defaultState,
+    items: ItemStore.getItems()
   };
 
-  addItem = item => {
-    this.setState({ items: [item, ...this.state.items] });
-  };
+  componentDidMount(){
+   ItemStore.on('change',this.resetState)   
+  }
 
-  removeItem = item => {
-    this.setState({
-      items: this.state.items.filter(other => other.id !== item.id),
-    });
-  };
+  componentWillUnmount(){
+    ItemStore.on('change',this.resetState)
+  }
 
-  markAsPacked = item => {
-    const otherItems = this.state.items.filter(other => other.id !== item.id);
-    const updatedItem = { ...item, packed: !item.packed };
-    this.setState({ items: [updatedItem, ...otherItems] });
-  };
+  resetState=()=>{
+    this.setState({items:ItemStore.getItems()})
+  }
+  
 
   markAllAsUnpacked = () => {
     const items = this.state.items.map(item => ({ ...item, packed: false }));
@@ -58,14 +57,10 @@ class Application extends Component {
         <Items
           title="Unpacked Items"
           items={unpackedItems}
-          onCheckOff={this.markAsPacked}
-          onRemove={this.removeItem}
         />
         <Items
           title="Packed Items"
           items={packedItems}
-          onCheckOff={this.markAsPacked}
-          onRemove={this.removeItem}
         />
         <button className="button full-width" onClick={this.markAllAsUnpacked}>
           Mark All As Unpacked
