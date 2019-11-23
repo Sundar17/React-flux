@@ -5,6 +5,7 @@ import NewItem from './NewItem';
 import Items from './Items';
 
 import './Application.css';
+import { timingSafeEqual } from 'crypto';
 
 const defaultState = [
   { value: 'Pants', id: uniqueId(), packed: false },
@@ -22,22 +23,49 @@ const defaultState = [
 
 class Application extends Component {
   state = {
-    // Set the initial state,
+    items:defaultState
   };
 
   // How are we going to manipulate the state?
   // Ideally, users are going to want to add, remove,
   // and check off items, right?
 
+  addItem=(newItem)=>{
+    this.setState({items:[...this.state.items,newItem]})
+  }
+
+  removeItem=(itemToRemove)=>{
+     const MyItems= this.state.items.filter(item=>item.id!==itemToRemove.id)  
+     this.setState({items:MyItems}) 
+  }
+
+  toggleItem=(itemToToggle)=>{
+    const MyItems= this.state.items.map(item=>{
+      if(item.id===itemToToggle.id){
+        return {...item,packed:!item.packed}
+      }
+      return item
+    })
+    this.setState({items:MyItems})
+  }
+
   render() {
-    // Get the items from state
+    const {items}=this.state
+    const packagedItems=items.filter((item)=>{
+      return item.packed===true
+    })
+    const unpackagedItems=items.filter((item)=>{
+      return item.packed!==true
+    })
+    console.log(packagedItems)
+    console.log(unpackagedItems)
 
     return (
       <div className="Application">
-        <NewItem />
+        <NewItem onSubmit={this.addItem}/>
         <CountDown />
-        <Items title="Unpacked Items" items={[]} />
-        <Items title="Packed Items" items={[]} />
+        <Items title="Unpacked Items" items={packagedItems} onRemove={this.removeItem} onToggle={this.toggleItem} />
+        <Items title="Packed Items" items={unpackagedItems} onRemove={this.removeItem} onToggle={this.toggleItem} />
         <button className="button full-width">Mark All As Unpacked</button>
       </div>
     );
